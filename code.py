@@ -361,7 +361,7 @@ if __name__ == '__main__':
         'cbam_block': cbam_block
     }
 
-    for k in range(2):
+    for k in range(20):
         print('\n' + '*' * 30 + f' 第 {k} 轮 ' + '*' * 30)
         fold_metrics = []
         val_pred_all = []
@@ -392,7 +392,7 @@ if __name__ == '__main__':
 
             # 训练参数优化
             BATCH_SIZE = 256
-            EPOCHS = 30
+            EPOCHS = 50
 
 
             # 学习率调度
