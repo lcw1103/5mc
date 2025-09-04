@@ -340,7 +340,7 @@ if __name__ == '__main__':
     test_label = to_categorical(np.array([1] * len(test_pos_seqs) + [0] * len(test_neg_seqs)))
 
     # 交叉验证设置
-    n = 5
+    n = 10
     k_fold = KFold(n_splits=n, shuffle=True, random_state=42)
 
     # 结果存储
@@ -491,3 +491,4 @@ if __name__ == '__main__':
     plt.legend()
     plt.savefig('../results/optimized_roc_curve.jpg', dpi=300)
     plt.show()
+
