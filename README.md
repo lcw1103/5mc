@@ -1,4 +1,4 @@
-_py-xgboost-mutex         2.0                       cpu_0    defaults
+
 absl-py                   0.15.0                   pypi_0    pypi
 astunparse                1.6.3                    pypi_0    pypi
 blas                      1.0                         mkl    defaults
