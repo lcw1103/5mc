@@ -18,6 +18,8 @@ Environment Requirements：
 
 numpy==1.24.3
 
+python==3.6
+
 matplotlib==3.7.1
 
 tensorflow==2.12.0
