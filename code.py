@@ -25,7 +25,7 @@ from collections import Counter
 import itertools
 
 
-# 读取DNA序列
+# Reading DNA sequences
 def read_fasta(fasta_file_name):
     seqs = []
     seqs_num = 0
@@ -45,7 +45,7 @@ def read_fasta(fasta_file_name):
     return seqs
 
 
-# One-hot编码
+# One-hot encoding
 def to_one_hot(seq_list):
     tensor = np.zeros((len(seq_list), 41, 4))
     for i in range(len(seq_list)):
@@ -64,7 +64,7 @@ def to_one_hot(seq_list):
     return tensor
 
 
-# NCP编码
+# NCP Coding
 def to_properties_code(seq_list):
     tensor = np.zeros((len(seq_list), 41, 3))
     for i in range(len(seq_list)):
@@ -83,7 +83,7 @@ def to_properties_code(seq_list):
     return tensor
 
 
-# k-mer频率特征（优化版）
+# k-mer frequency features
 def to_kmer_features(seq_list, k=3, n_components=1):
     bases = ['A', 'C', 'G', 'T']
     all_kmers = [''.join(p) for p in itertools.product(bases, repeat=k)]
@@ -94,15 +94,15 @@ def to_kmer_features(seq_list, k=3, n_components=1):
         for j, kmer in enumerate(all_kmers):
             kmer_tensor[i, j] = kmer_counts.get(kmer, 0) / len(kmers) if kmer in kmer_counts else 0
 
-    # 使用PCA降维
+    # Dimensionality reduction using PCA
     pca = PCA(n_components=n_components)
     kmer_reduced = pca.fit_transform(kmer_tensor)
-    kmer_reduced = kmer_reduced[:, np.newaxis, :]  # 调整形状为 (样本数, 1, n_components)
-    kmer_reduced = np.repeat(kmer_reduced, 41, axis=1)  # 复制到每个时间步
+    kmer_reduced = kmer_reduced[:, np.newaxis, :]  # Reshape to (number of samples, 1, n_components)
+    kmer_reduced = np.repeat(kmer_reduced, 41, axis=1)  # Copy to each time step
     return kmer_reduced
 
 
-# 性能评估
+# Performance Evaluation
 def show_performance(y_true, y_pred):
     TP = FP = FN = TN = 0
     for true, pred in zip(y_true, y_pred):
@@ -232,7 +232,7 @@ class BiGRUModel(tf.keras.layers.Layer):
         return config
 
 
-# Focal Loss（调整参数）
+# Focal Loss
 def focal_loss(gamma=3.0, alpha=0.75):
     def focal_loss_fixed(y_true, y_pred):
         y_true = tf.cast(y_true, tf.float32)
@@ -243,7 +243,7 @@ def focal_loss(gamma=3.0, alpha=0.75):
     return focal_loss_fixed
 
 
-# 余弦退火学习率调度
+# Cosine annealing learning rate scheduling
 def cosine_annealing(epoch, lr):
     max_lr = 5e-4
     min_lr = 1e-5
@@ -251,45 +251,45 @@ def cosine_annealing(epoch, lr):
     return min_lr + (max_lr - min_lr) * (1 + np.cos(np.pi * epoch / epochs)) / 2
 
 
-# 动态类权重
+# Dynamic class weights
 def compute_class_weights(labels):
     n_pos = np.sum(labels[:, 1])
     n_neg = np.sum(labels[:, 0])
     return {0: 1.0, 1: n_neg / n_pos if n_pos > 0 else 1.0}
 
 
-def build_simple_model(input_shape=(41, 8), weight_decay=1e-3):  # 增强正则化
+def build_simple_model(input_shape=(41, 8), weight_decay=1e-3):  # Enhanced regularization
     inputs = Input(shape=input_shape)
     x = inputs
 
-    # 优化TCN配置
+    # Optimizing TCN Configuration
     x = tcn.TCN(
-        nb_filters=128,  # 减少filter数量
-        kernel_size=5,  # 增大kernel size
-        dilations=(1, 2, 4),  # 调整dilation rate
-        dropout_rate=0.3,  # 增加dropout
+        nb_filters=128,  
+        kernel_size=5,  
+        dilations=(1, 2, 4),  
+        dropout_rate=0.3,  
         use_weight_norm=True,
         return_sequences=True
     )(x)
 
-    # 增强正则化
+   
     x = BatchNormalization()(x)
-    x = Dropout(0.4)(x)  # 增加dropout
+    x = Dropout(0.4)(x)  
 
-    # 优化BiGRU
-    bigru_layer = BiGRUModel(num_units=128)  # 减少单元数
+ 
+    bigru_layer = BiGRUModel(num_units=128)  
     x = bigru_layer(x)
     x = BatchNormalization()(x)
-    x = Dropout(0.3)(x)  # 新增dropout
+    x = Dropout(0.3)(x)  
 
-    # 调整注意力机制
+    
     res_out = CustomExpandDimsLayer(axis=2)(x)
-    res_out_att = cbam_block(res_out, ratio=4)  # 减少压缩比例
+    res_out_att = cbam_block(res_out, ratio=4)  
     x = SqueezeLayer(axis=2)(res_out_att)
 
-    # 优化全连接层
+    
     x = Flatten()(x)
-    x = Dense(128, activation="swish",  # 改用swish激活
+    x = Dense(128, activation="swish",  
               kernel_regularizer=l2(weight_decay))(x)
     x = BatchNormalization()(x)
     x = Dropout(0.5)(x)
@@ -303,8 +303,8 @@ def build_simple_model(input_shape=(41, 8), weight_decay=1e-3):  # 增强正则�
                     kernel_regularizer=l2(weight_decay))(x)
 
     model = Model(inputs=inputs, outputs=outputs)
-    optimizer = Adam(learning_rate=3e-4, epsilon=1e-7)  # 调整学习率
-    model.compile(loss=focal_loss(gamma=2.0, alpha=0.6),  # 优化focal参数
+    optimizer = Adam(learning_rate=3e-4, epsilon=1e-7) 
+    model.compile(loss=focal_loss(gamma=2.0, alpha=0.6),  
                   optimizer=optimizer,
                   metrics=['accuracy'])
     return model
@@ -319,39 +319,39 @@ def performance_mean(performance):
 
 
 if __name__ == '__main__':
-    # 数据加载（保持原始数据）
-    train_pos_seqs = np.array(read_fasta(r'D:\放代码的\贾博增强子\data\5mcfeiai\train_positive_data.fasta'))
-    train_neg_seqs = np.array(read_fasta(r'D:\放代码的\贾博增强子\data\5mcfeiai\train_negative_data.fasta'))
+    # Data loading
+    train_pos_seqs = np.array(read_fasta(r'train_positive_data.fasta'))
+    train_neg_seqs = np.array(read_fasta(r'train_negative_data.fasta'))
 
-    # 生成原始特征（不过采样）
+    
     raw_train_onehot = to_one_hot(np.concatenate((train_pos_seqs, train_neg_seqs)))
     raw_train_properties = to_properties_code(np.concatenate((train_pos_seqs, train_neg_seqs)))
     raw_train_kmer = to_kmer_features(np.concatenate((train_pos_seqs, train_neg_seqs)), k=3)
     raw_train = np.concatenate((raw_train_onehot, raw_train_properties, raw_train_kmer), axis=-1)
     raw_labels = np.array([1] * len(train_pos_seqs) + [0] * len(train_neg_seqs))
 
-    # 测试集数据（保持不变）
-    test_pos_seqs = np.array(read_fasta(r'D:\放代码的\贾博增强子\data\5mcfeiai\test_positive_data.fasta'))
-    test_neg_seqs = np.array(read_fasta(r'D:\放代码的\贾博增强子\data\5mcfeiai\test_negative_data.fasta'))
+     
+    test_pos_seqs = np.array(read_fasta(r'test_positive_data.fasta'))
+    test_neg_seqs = np.array(read_fasta(r'test_negative_data.fasta'))
     test_onehot = to_one_hot(np.concatenate((test_pos_seqs, test_neg_seqs)))
     test_properties_code = to_properties_code(np.concatenate((test_pos_seqs, test_neg_seqs)))
     test_kmer = to_kmer_features(np.concatenate((test_pos_seqs, test_neg_seqs)), k=3)
     test = np.concatenate((test_onehot, test_properties_code, test_kmer), axis=-1)
     test_label = to_categorical(np.array([1] * len(test_pos_seqs) + [0] * len(test_neg_seqs)))
 
-    # 交叉验证设置
+  
     n = 10
     k_fold = KFold(n_splits=n, shuffle=True, random_state=42)
 
-    # 结果存储
+   
     sv_10_result = []
     tprs = []
     mean_fpr = np.linspace(0, 1, 100)
 
-    # 元模型（保持不变）
+    
     meta_model = MLPClassifier(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)
 
-    # 自定义对象（添加新组件）
+    
     custom_objects = {
         'focal_loss_fixed': focal_loss(gamma=2.0, alpha=0.6),
         'TCN': tcn.TCN,
@@ -371,11 +371,11 @@ if __name__ == '__main__':
         for fold_idx, (train_idx, val_idx) in enumerate(k_fold.split(raw_train)):
             print('\n' + '*' * 30 + f' 折 {fold_idx + 1} ' + '*' * 30)
 
-            # 正确应用 SMOTE（仅在训练集）
+           
             tra_flat = raw_train[train_idx].reshape(len(train_idx), -1)
             tra_label_flat = raw_labels[train_idx]
 
-            # 控制过采样比例
+           
             tra_resampled, tra_label_resampled = SMOTE(sampling_strategy=0.8, random_state=42).fit_resample(
                 tra_flat, tra_label_flat
             )
@@ -383,19 +383,19 @@ if __name__ == '__main__':
             tra = tra_resampled.reshape(-1, 41, 8)
             tra_label = to_categorical(tra_label_resampled)
 
-            # 验证集保持原始分布
+           
             val = raw_train[val_idx]
             val_label = to_categorical(raw_labels[val_idx])
 
-            # 模型构建
+            
             model = build_simple_model()
 
-            # 训练参数优化
+            
             BATCH_SIZE = 256
             EPOCHS = 50
 
 
-            # 学习率调度
+            
             def dynamic_lr(epoch):
                 if epoch < 10:
                     return 3e-4
@@ -405,7 +405,7 @@ if __name__ == '__main__':
                     return 5e-5
 
 
-            # 早停策略
+            
             early_stop = EarlyStopping(
                 monitor='val_accuracy',
                 patience=15,
@@ -413,7 +413,7 @@ if __name__ == '__main__':
                 restore_best_weights=True
             )
 
-            # 模型训练
+            
             history = model.fit(
                 x=tra,
                 y=tra_label,
@@ -425,7 +425,7 @@ if __name__ == '__main__':
                 verbose=1
             )
 
-            # 阈值优化函数
+            
             from sklearn.metrics import matthews_corrcoef
 
 
@@ -435,51 +435,51 @@ if __name__ == '__main__':
                 return thresholds[np.argmax(mcc_values)]
 
 
-            # 验证集预测
+            
             val_pred = model.predict(val, verbose=0)[:, 1]
             best_thresh = optimize_threshold(val_label[:, 1], val_pred)
 
-            # 测试集预测
+            
             test_pred = model.predict(test, verbose=0)[:, 1]
             test_pred_bin = (test_pred >= best_thresh).astype(int)
 
-            # 性能计算
+           
             Sn, Sp, Acc, MCC = show_performance(test_label[:, 1], test_pred_bin)
             AUC = roc_auc_score(test_label[:, 1], test_pred)
             print(f'Threshold={best_thresh:.2f}, Sn={Sn:.4f}, Sp={Sp:.4f}, Acc={Acc:.4f}, MCC={MCC:.4f}, AUC={AUC:.4f}')
 
-            # 存储结果
+           
             val_pred_all.append(val_pred)
             test_pred_all.append(test_pred)
             val_labels_all.append(val_label[:, 1])
             fold_metrics.append([Sn, Sp, Acc, MCC, AUC])
 
-            # 模型保存
+           
             model.save(f'../models/5mc_model_{k}_fold{fold_idx}.h5')
             tf.keras.backend.clear_session()
 
-        # 元模型训练
+        
         meta_model.fit(np.array(val_pred_all).T, np.concatenate(val_labels_all))
 
-        # 集成预测
+        
         stacking_pred = meta_model.predict_proba(np.array(test_pred_all).T)[:, 1]
         final_pred = (stacking_pred >= optimize_threshold(test_label[:, 1], stacking_pred)).astype(int)
 
-        # 最终评估
+        
         Sn, Sp, Acc, MCC = show_performance(test_label[:, 1], final_pred)
         AUC = roc_auc_score(test_label[:, 1], stacking_pred)
         sv_10_result.append([Sn, Sp, Acc, MCC, AUC])
 
-        # 绘制 ROC 曲线
+        
         fpr, tpr, _ = roc_curve(test_label[:, 1], stacking_pred)
         tprs.append(np.interp(mean_fpr, fpr, tpr))
         plt.plot(fpr, tpr, label=f'Round {k} (AUC={AUC:.2f})')
 
-    # 最终输出
+    
     print('\n' + '=' * 40 + ' Final Performance ' + '=' * 40)
     performance_mean(np.array(sv_10_result))
 
-    # 绘制平均 ROC 曲线
+    
     plt.plot([0, 1], [0, 1], linestyle='--', color='gray')
     mean_tpr = np.mean(tprs, axis=0)
     mean_tpr[-1] = 1.0
@@ -491,4 +491,5 @@ if __name__ == '__main__':
     plt.legend()
     plt.savefig('../results/optimized_roc_curve.jpg', dpi=300)
     plt.show()
+
 
