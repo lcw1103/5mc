@@ -309,7 +309,7 @@ def build_simple_model(input_shape=(41, 8), weight_decay=1e-3):  # Enhanced regu
                   metrics=['accuracy'])
     return model
 
-# 性能均值
+
 def performance_mean(performance):
     print('Sn = %.4f ± %.4f' % (np.mean(performance[:, 0]), np.std(performance[:, 0])))
     print('Sp = %.4f ± %.4f' % (np.mean(performance[:, 1]), np.std(performance[:, 1])))
@@ -491,5 +491,6 @@ if __name__ == '__main__':
     plt.legend()
     plt.savefig('../results/optimized_roc_curve.jpg', dpi=300)
     plt.show()
+
 
 
