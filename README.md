@@ -1,5 +1,5 @@
 TCN-5mC: A Predictor of 5-methylcytosine Sites Based on Multi-Feature Fusion and TCN Networks
-1. Project Introduction
+   Project Introduction
    TCN-5mC is a novel deep learning framework designed for accurate and efficient prediction of 5-methylcytosine (5mC) sites in DNA promoter regions. 5mC is a key epigenetic modification involved in gene regulation, genome stability, and disease progression (e.g., cancer, Alzheimer’s disease). Traditional experimental methods (e.g., bisulfite sequencing) are costly and time-consuming, making computational predictors essential for large-scale studies.
    This project integrates:
    Multi-feature fusion: Combines One-hot encoding, Nucleotide Chemical Property (NCP) encoding, and k-mer frequency features to capture comprehensive sequence information.
@@ -7,7 +7,6 @@ TCN-5mC: A Predictor of 5-methylcytosine Sites Based on Multi-Feature Fusion and
    Imbalanced data handling: Uses SMOTE (Synthetic Minority Oversampling Technique) and Focal Loss to address the natural imbalance of 5mC datasets (positive:negative ≈ 1:7~12).
 
 Environment Requirements：
-3.1 Dependencies
 numpy==1.24.3
 matplotlib==3.7.1
 tensorflow==2.12.0
