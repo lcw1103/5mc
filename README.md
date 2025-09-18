@@ -1,4 +1,6 @@
-#TCN-5mC: A Predictor of 5-methylcytosine Sites Based on Multi-Feature Fusion and TCN Networks
+Project Title
+
+TCN-5mC: A Predictor of 5-methylcytosine Sites Based on Multi-Feature Fusion and TCN Networks
 
    Project Introduction
    
@@ -28,7 +30,7 @@ imbalanced-learn==0.10.1
 
 scikit-learn==1.2.2
 
-Data Preparation
+Data Preparation:
 
 Prepare your data as FASTA files (no 'N' bases allowed) with the following naming convention:
 
